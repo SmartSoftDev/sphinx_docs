@@ -1,0 +1,18 @@
+# .vscode will be supported
+
+# python projects from other repositories that must have a symlink in CORE. (to solve PYTHONPATH).
+**/*.puml.png
+.idea
+**/*.pyc
+**/*.cache
+**/.coverage
+.settings
+.mypy_cache/
+.ropeproject
+**/node_modules/
+**/.delivery
+**/.project
+**/.cproject
+**/test-output.xml
+**/coverage.xml
+**/htmlcov
