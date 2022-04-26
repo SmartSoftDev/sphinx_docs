@@ -4,5 +4,6 @@ author: noAuthor
 copyright: 2022, noCompanyName
 generate_git_version: true
 generate_change_history: false
+generate_auto_index: false
 tags:
   - noTag
