@@ -1,5 +1,5 @@
 
-# This library finds and builds sphynx documents
+# This library finds and builds sphinx documents
 
 SPHINXOPTS=-W
 SPHINXBUILD=sphinx-build
@@ -8,9 +8,9 @@ SPHINX_DEFAULT_TARGET="singlehtml"
 declare -a DOCS_REQS  # initialing
 
 function docs_find(){
-    local path='.'
+    local path='.' this_dir abs_path
     if [ "$1" != "" ] ; then
-        path=$1
+        path="$1"
     fi
     local this_dir="$( readlink -f $( dirname "${BASH_SOURCE[0]}" ))"
 
@@ -18,20 +18,26 @@ function docs_find(){
         local abs_path=$(dirname $(readlink -f $pfile))
 
         if [ "$abs_path" == "$this_dir" ] ; then
-            DOCS_REQS+=($(dirname $pfile))
+            DOCS_REQS+=( $(dirname "$pfile") )
         fi
     done
     log "Found ${#DOCS_REQS[@]} documents"
 }
 
 function docs_build_one(){
-    local path="$1"
-    local target="$SPHINX_DEFAULT_TARGET"
+    local path target this_dir puml_exec
+    path="$1"
+    target="$SPHINX_DEFAULT_TARGET"
     if [ "$2" != "" ] ; then
         target="$2"
     fi
+<<<<<<< HEAD
     local this_dir="$( dirname "${BASH_SOURCE[0]}" )"
     local puml_exec="$(readlink -f "$this_dir/tools/plantuml.jar")"
+=======
+    this_dir="$( dirname "${BASH_SOURCE[0]}" )"
+    puml_exec="$(readlink -e "$this_dir/tools/plantuml.jar")"
+>>>>>>> impr_docs: Added logic that generate pdf as output documentation.
     echo "Start building document $path"
     for pfile in $(find -L $path -name "*.puml" -type f) ; do
         if [ "$pfile" -nt "$pfile.png" ] ;then
@@ -42,6 +48,10 @@ function docs_build_one(){
             echo "$pfile.png already up to date"
         fi
     done
+    pdf_check_bin="$this_dir/check_generate_pdf.py"
+    if $pdf_check_bin "$path" ; then
+      $SPHINXBUILD -M "pdf" "$path" "${path}/.sphinx_docs_build" "${SPHINXOPTS}"
+    fi
     $SPHINXBUILD -M "$target" "$path" "${path}/.sphinx_docs_build" "${SPHINXOPTS}"
 }
 
@@ -50,8 +60,8 @@ function docs_build(){
     if [ "$1" != "" ] ; then
         target="$1"
     fi
-    for path in ${DOCS_REQS[@]} ; do
-        docs_build_one $path $target || return 1
+    for path in "${DOCS_REQS[@]}" ; do
+        docs_build_one "$path" "$target" || return 1
     done
 }
 
@@ -60,7 +70,7 @@ function docs_build_all(){
     if [ "$1" != "" ] ; then
         path=$1
     fi
-    docs_find $path || return 1
+    docs_find "$path" || return 1
     docs_build || return 1
 }
 
@@ -74,23 +84,27 @@ function docs_show_all_singlehtml(){
 
     docs_find
     local browser_files=""
-    for path in ${DOCS_REQS[@]} ; do
+    for path in "${DOCS_REQS[@]}" ; do
         if [ ! -d "${path}/.sphinx_docs_build" ] ; then
             docs_build_one "$path" "$target"
         fi
         browser_files="$browser_files ${path}/.sphinx_docs_build/$SPHINX_DEFAULT_TARGET/index.html"
     done
     if [ "$browser" != "" ] ; then
-        $browser $browser_files >/dev/null 2>&1 &
+        $browser "$browser_files" >/dev/null 2>&1 &
     else
         for i in $browser_files ; do
+<<<<<<< HEAD
             echo $(readlink -f "$i")
+=======
+            readlink -e "$i"
+>>>>>>> impr_docs: Added logic that generate pdf as output documentation.
         done
     fi
 }
 
 function docs_install_dependencies(){
-    sudo -H pip3 install --upgrade --quiet Sphinx recommonmark sphinx-rtd-theme
+    sudo -H pip3 install --upgrade --quiet Sphinx recommonmark sphinx-rtd-theme rst2pdf
     sudo apt install graphviz
 }
 

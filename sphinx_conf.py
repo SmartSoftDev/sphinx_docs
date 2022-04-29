@@ -11,8 +11,30 @@ see Readme.md
 see https://www.sphinx-doc.org/en/master/usage/markdown.html for markdown support
 """
 import os
+from typing import Union
+
 import yaml
 import subprocess
+
+
+def get_last_tag(cwd, _filter: str) -> Union[None, str]:
+    """get last tag for some specific component"""
+    cmd = ["git", "tag", "--list", _filter, "--merged"]
+    tags = []
+    try:
+        tags = [
+            line.strip()
+            for line in subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.STDOUT)
+            .decode("utf-8")
+            .strip()
+            .split("\n")
+            if line.strip()
+        ]
+    except subprocess.CalledProcessError:
+        print(f"Found no tags for {_filter} pattern.")
+    if tags:
+        return tags[-1]
+    return
 
 
 def get_config(conf_py_fpath):
@@ -24,7 +46,9 @@ def get_config(conf_py_fpath):
         "version": "0.1",
         "copyright": "noCopyright",
         "generate_git_version": True,
-        "generate_change_history": False,  # TODO-SSD: de implementat istoricul din yaml sau din git.
+        "generate_pdf": False,
+        "pdf_documents": [('src_rst_file', 'pdf_file_name', 'Documentation Title', 'Documentation Author'), ],
+        "generate_change_history": False,  # TODO-SSD: to implement the history from yaml or from git.
         "tags": [],
     }
 
@@ -35,8 +59,13 @@ def get_config(conf_py_fpath):
             _doc = yaml.safe_load(f)
         print(_doc)
         doc.update(_doc)
-    version = doc.get("version")
+    version = doc.get("version", "0.1")
     if doc.get("generate_git_version"):
+        prefix = doc.get("git_tag_prefix", "")
+        git_tag = get_last_tag(cwd, _filter=f"{prefix}*")  # for git list we need glob *
+        if git_tag:
+            version = git_tag or "0.1"
+
         git_commits_out = subprocess.check_output(["git", "log", "--format=%H", "."], cwd=cwd).decode().split("\n")
         git_commits = []
         for i in git_commits_out:
@@ -55,6 +84,7 @@ def get_config(conf_py_fpath):
         if len(git_diff_out):
             version += " (dirty)"
     doc["version"] = version
+    doc["pdf_documents"] = [tuple(d) for d in doc["pdf_documents"]]
     return doc
 
 
@@ -66,12 +96,14 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
     "myst_parser",
+    "rst2pdf.pdfbuilder",
 ]
 
 templates_path = ["_templates"]
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 master_doc = "index"
 doc = get_config(__file__)
+pdf_documents = doc.get("pdf_documents")
 
 title = doc.get("title")
 project = doc.get("project")
