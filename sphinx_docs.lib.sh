@@ -12,10 +12,10 @@ function docs_find(){
     if [ "$1" != "" ] ; then
         path=$1
     fi
-    local this_dir="$( readlink -e $( dirname "${BASH_SOURCE[0]}" ))"
+    local this_dir="$( readlink -f $( dirname "${BASH_SOURCE[0]}" ))"
 
     for pfile in $(find $path -name "conf.py") ; do
-        local abs_path=$(dirname $(readlink -e $pfile))
+        local abs_path=$(dirname $(readlink -f $pfile))
 
         if [ "$abs_path" == "$this_dir" ] ; then
             DOCS_REQS+=($(dirname $pfile))
@@ -31,7 +31,7 @@ function docs_build_one(){
         target="$2"
     fi
     local this_dir="$( dirname "${BASH_SOURCE[0]}" )"
-    local puml_exec="$(readlink -e "$this_dir/tools/plantuml.jar")"
+    local puml_exec="$(readlink -f "$this_dir/tools/plantuml.jar")"
     echo "Start building document $path"
     for pfile in $(find -L $path -name "*.puml" -type f) ; do
         if [ "$pfile" -nt "$pfile.png" ] ;then
@@ -84,7 +84,7 @@ function docs_show_all_singlehtml(){
         $browser $browser_files >/dev/null 2>&1 &
     else
         for i in $browser_files ; do
-            echo $(readlink -e "$i")
+            echo $(readlink -f "$i")
         done
     fi
 }
