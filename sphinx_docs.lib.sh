@@ -31,13 +31,8 @@ function docs_build_one(){
     if [ "$2" != "" ] ; then
         target="$2"
     fi
-<<<<<<< HEAD
     local this_dir="$( dirname "${BASH_SOURCE[0]}" )"
     local puml_exec="$(readlink -f "$this_dir/tools/plantuml.jar")"
-=======
-    this_dir="$( dirname "${BASH_SOURCE[0]}" )"
-    puml_exec="$(readlink -e "$this_dir/tools/plantuml.jar")"
->>>>>>> impr_docs: Added logic that generate pdf as output documentation.
     echo "Start building document $path"
     for pfile in $(find -L $path -name "*.puml" -type f) ; do
         if [ "$pfile" -nt "$pfile.png" ] ;then
@@ -94,11 +89,7 @@ function docs_show_all_singlehtml(){
         $browser "$browser_files" >/dev/null 2>&1 &
     else
         for i in $browser_files ; do
-<<<<<<< HEAD
-            echo $(readlink -f "$i")
-=======
-            readlink -e "$i"
->>>>>>> impr_docs: Added logic that generate pdf as output documentation.
+            readlink -f "$i"
         done
     fi
 }
