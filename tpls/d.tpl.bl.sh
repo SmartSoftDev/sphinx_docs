@@ -40,3 +40,11 @@ gblcmd_clean(){
     . $SPHINX_DOCS_SH_LIB_LOCATION
     docs_clean_all
 }
+
+gblcmd_descr_install_depends="Install ubuntu and pip dependencies for sphinx docs"
+gblcmd_install_depends(){
+    _find_sphinx_docs_sh_lib_location
+    [ -z "$SPHINX_DOCS_SH_LIB_LOCATION" ] && fatal "Could not find the Sphinx_docs tool"
+    . $SPHINX_DOCS_SH_LIB_LOCATION
+    docs_install_dependencies
+}

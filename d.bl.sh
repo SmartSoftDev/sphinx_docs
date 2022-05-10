@@ -27,7 +27,3 @@ gblcmd_create_new_doc(){
         log "index.rst exists ... ignoring it"
     fi
 }
-
-gblcmd_install_dependencies(){
-    pip3 install rst2pdf yq
-}
