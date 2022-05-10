@@ -1,5 +1,5 @@
 
-# This library finds and builds sphynx documents
+# This library finds and builds sphinx documents
 
 SPHINXOPTS=-W
 SPHINXBUILD=sphinx-build
@@ -8,25 +8,25 @@ SPHINX_DEFAULT_TARGET="singlehtml"
 declare -a DOCS_REQS  # initialing
 
 function docs_find(){
-    local path='.'
+    local path='.' this_dir abs_path
     if [ "$1" != "" ] ; then
-        path=$1
+        path="$1"
     fi
     local this_dir="$( readlink -f $( dirname "${BASH_SOURCE[0]}" ))"
 
     for pfile in $(find $path -name "conf.py") ; do
         local abs_path=$(dirname $(readlink -f $pfile))
-
         if [ "$abs_path" == "$this_dir" ] ; then
-            DOCS_REQS+=($(dirname $pfile))
+            DOCS_REQS+=( $(dirname "$pfile") )
         fi
     done
     log "Found ${#DOCS_REQS[@]} documents"
 }
 
 function docs_build_one(){
-    local path="$1"
-    local target="$SPHINX_DEFAULT_TARGET"
+    local path target this_dir puml_exec
+    path="$1"
+    target="$SPHINX_DEFAULT_TARGET"
     if [ "$2" != "" ] ; then
         target="$2"
     fi
@@ -42,16 +42,19 @@ function docs_build_one(){
             echo "$pfile.png already up to date"
         fi
     done
+
+    if [ "$(yq .generate_pdf $path/doc.yaml)" == "true" ] ; then
+      $SPHINXBUILD -M "pdf" "$path" "${path}/.sphinx_docs_build" "${SPHINXOPTS}"
+    fi
     $SPHINXBUILD -M "$target" "$path" "${path}/.sphinx_docs_build" "${SPHINXOPTS}"
 }
 
 function docs_build(){
-    local target=$SPHINX_DEFAULT_TARGET
     if [ "$1" != "" ] ; then
         target="$1"
     fi
-    for path in ${DOCS_REQS[@]} ; do
-        docs_build_one $path $target || return 1
+    for path in "${DOCS_REQS[@]}" ; do
+        docs_build_one "$path" || return 1
     done
 }
 
@@ -60,7 +63,7 @@ function docs_build_all(){
     if [ "$1" != "" ] ; then
         path=$1
     fi
-    docs_find $path || return 1
+    docs_find "$path" || return 1
     docs_build || return 1
 }
 
@@ -73,24 +76,56 @@ function docs_show_all_singlehtml(){
     [ "x$2" != "x" ] && browser="$2"
 
     docs_find
-    local browser_files=""
-    for path in ${DOCS_REQS[@]} ; do
-        if [ ! -d "${path}/.sphinx_docs_build" ] ; then
-            docs_build_one "$path" "$target"
-        fi
-        browser_files="$browser_files ${path}/.sphinx_docs_build/$SPHINX_DEFAULT_TARGET/index.html"
-    done
-    if [ "$browser" != "" ] ; then
-        $browser $browser_files >/dev/null 2>&1 &
-    else
+    case $browser  in
+    "")
         for i in $browser_files ; do
-            echo $(readlink -f "$i")
+            readlink -f "$i"
         done
-    fi
+    ;;
+    "pdf")
+        local pdf_files=""
+        for path in "${DOCS_REQS[@]}" ; do
+            if [ ! -d "${path}/.sphinx_docs_build" ] ; then
+                docs_build_one "$path" "$target"
+            fi
+            local proj_name=$(yq -r .project ${path}/doc.yaml)
+            pdf_files="$browser_files ${path}/.sphinx_docs_build/pdf/${proj_name}.pdf"
+        done
+        for i in $pdf_files ; do
+            xdg-open "$i"
+        done
+    ;;
+    *)
+        local browser_files=""
+        for path in "${DOCS_REQS[@]}" ; do
+            if [ ! -d "${path}/.sphinx_docs_build" ] ; then
+                docs_build_one "$path" "$target"
+            fi
+            browser_files="$browser_files ${path}/.sphinx_docs_build/$SPHINX_DEFAULT_TARGET/index.html"
+        done
+        $browser $browser_files >/dev/null 2>&1 &
+    ;;
+    esac
 }
 
 function docs_install_dependencies(){
-    sudo -H pip3 install --upgrade --quiet Sphinx recommonmark sphinx-rtd-theme
+    sudo -H pip3 install --upgrade --quiet Sphinx recommonmark sphinx-rtd-theme rst2pdf yq
     sudo apt install graphviz
 }
 
+
+function docs_clean_all(){
+    local path='.'
+    if [ "$1" != "" ] ; then
+        path=$1
+    fi
+    docs_find "$path" || return 1
+    for path in "${DOCS_REQS[@]}" ; do
+        local doc_build_path="${path}/.sphinx_docs_build"
+        echo "$doc_build_path"
+        if [ -d "$doc_build_path" ] ; then
+            rm -rf $doc_build_path
+        fi
+    done
+
+}

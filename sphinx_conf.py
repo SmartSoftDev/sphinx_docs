@@ -11,8 +11,30 @@ see Readme.md
 see https://www.sphinx-doc.org/en/master/usage/markdown.html for markdown support
 """
 import os
+from typing import Union
+
 import yaml
 import subprocess
+
+
+def get_last_tag(cwd, _filter: str) -> Union[None, str]:
+    """get last tag for some specific component"""
+    cmd = ["git", "tag", "--list", _filter, "--merged"]
+    tags = []
+    try:
+        tags = [
+            line.strip()
+            for line in subprocess.check_output(cmd, cwd=cwd, stderr=subprocess.STDOUT)
+            .decode("utf-8")
+            .strip()
+            .split("\n")
+            if line.strip()
+        ]
+    except subprocess.CalledProcessError:
+        print(f"Found no tags for {_filter} pattern.")
+    if tags:
+        return tags[-1]
+    return
 
 
 def get_config(conf_py_fpath):
@@ -21,10 +43,12 @@ def get_config(conf_py_fpath):
         "project": "NoProjectName",
         "title": "NoTitle",
         "author": "noAuthor",
-        "version": "0.1",
+        "version": "0.0.0",
         "copyright": "noCopyright",
         "generate_git_version": True,
-        "generate_change_history": False,  # TODO-SSD: de implementat istoricul din yaml sau din git.
+        "generate_pdf": False,
+        "generate_change_history": False,  # TODO-SSD: to implement the history from yaml or from git.
+        "git_tag_prefix": "",
         "tags": [],
     }
 
@@ -37,6 +61,12 @@ def get_config(conf_py_fpath):
         doc.update(_doc)
     version = doc.get("version")
     if doc.get("generate_git_version"):
+        prefix = doc.get("git_tag_prefix")
+        git_tag = get_last_tag(cwd, _filter=f"{prefix}*")  # for git list we need glob *
+        if git_tag:
+            git_tag_version = git_tag[len(prefix) :]
+            version = git_tag_version
+
         git_commits_out = subprocess.check_output(["git", "log", "--format=%H", "."], cwd=cwd).decode().split("\n")
         git_commits = []
         for i in git_commits_out:
@@ -44,14 +74,20 @@ def get_config(conf_py_fpath):
             if not len(i):
                 continue
             git_commits.append(i)
+        if len(git_commits):
+            hash_limit = 9
+            changes_count = len(git_commits)
+            # the build_commit_hash: -20-65ecc13
+            build_commit_hash = ""
+            if changes_count > 0:
+                # creates build_commit_hash with git short hash ex: "20-65ecc13"
+                build_commit_hash = f"-{changes_count}"
+                build_commit_hash += f"-{git_commits[0][:hash_limit]}"
+
+            version += build_commit_hash
+
         git_diff_out = subprocess.check_output(["git", "diff", "--name-only", "."], cwd=cwd).decode().split("\n")
         git_diff_out = [i.strip() for i in git_diff_out if len(i.strip())]
-        if len(git_commits):
-            if version.endswith("."):
-                version += str(len(git_commits))
-            else:
-                version += "." + str(len(git_commits))
-            version += "." + git_commits[0][:6]
         if len(git_diff_out):
             version += " (dirty)"
     doc["version"] = version
@@ -66,6 +102,7 @@ extensions = [
     "sphinx.ext.viewcode",
     "sphinx_rtd_theme",
     "myst_parser",
+    "rst2pdf.pdfbuilder",
 ]
 
 templates_path = ["_templates"]
@@ -79,6 +116,12 @@ copyright = doc.get("copyright")
 author = doc.get("author")
 version = doc.get("version")
 release = version
+pdf_documents = [
+    (master_doc, project, title, author),
+]
+# pdf_use_index = False
+# pdf_use_coverpage = False
+# pdf_use_toc = False
 
 language = None
 exclude_patterns = []
