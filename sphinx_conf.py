@@ -43,11 +43,12 @@ def get_config(conf_py_fpath):
         "project": "NoProjectName",
         "title": "NoTitle",
         "author": "noAuthor",
-        "version": "0.1",
+        "version": "0.0.0",
         "copyright": "noCopyright",
         "generate_git_version": True,
         "generate_pdf": False,
         "generate_change_history": False,  # TODO-SSD: to implement the history from yaml or from git.
+        "git_tag_prefix": "",
         "tags": [],
     }
 
@@ -58,12 +59,13 @@ def get_config(conf_py_fpath):
             _doc = yaml.safe_load(f)
         print(_doc)
         doc.update(_doc)
-    version = doc.get("version", "0.1")
+    version = doc.get("version")
     if doc.get("generate_git_version"):
-        prefix = doc.get("git_tag_prefix", "")
+        prefix = doc.get("git_tag_prefix")
         git_tag = get_last_tag(cwd, _filter=f"{prefix}*")  # for git list we need glob *
         if git_tag:
-            version = git_tag or "0.1"
+            git_tag_version = git_tag[len(prefix) :]
+            version = git_tag_version
 
         git_commits_out = subprocess.check_output(["git", "log", "--format=%H", "."], cwd=cwd).decode().split("\n")
         git_commits = []
@@ -72,14 +74,20 @@ def get_config(conf_py_fpath):
             if not len(i):
                 continue
             git_commits.append(i)
+        if len(git_commits):
+            hash_limit = 9
+            changes_count = len(git_commits)
+            # the build_commit_hash: -20-65ecc13
+            build_commit_hash = ""
+            if changes_count > 0:
+                # creates build_commit_hash with git short hash ex: "20-65ecc13"
+                build_commit_hash = f"-{changes_count}"
+                build_commit_hash += f"-{git_commits[0][:hash_limit]}"
+
+            version += build_commit_hash
+
         git_diff_out = subprocess.check_output(["git", "diff", "--name-only", "."], cwd=cwd).decode().split("\n")
         git_diff_out = [i.strip() for i in git_diff_out if len(i.strip())]
-        if len(git_commits):
-            if version.endswith("."):
-                version += str(len(git_commits))
-            else:
-                version += "." + str(len(git_commits))
-            version += "." + git_commits[0][:6]
         if len(git_diff_out):
             version += " (dirty)"
     doc["version"] = version
