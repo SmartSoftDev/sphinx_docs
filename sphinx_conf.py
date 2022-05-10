@@ -143,8 +143,6 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
-    # "classoptions": ",openany,oneside",  # remove extra white page added to PDF's
-    # "extraclassoptions": ",openany,oneside",  # remove extra white page added to PDF's
 }
 latex_documents = [
     (master_doc, "documentation.tex", title, author, "manual"),
