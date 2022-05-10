@@ -47,7 +47,6 @@ def get_config(conf_py_fpath):
         "copyright": "noCopyright",
         "generate_git_version": True,
         "generate_pdf": False,
-        "pdf_documents": [('src_rst_file', 'pdf_file_name', 'Documentation Title', 'Documentation Author'), ],
         "generate_change_history": False,  # TODO-SSD: to implement the history from yaml or from git.
         "tags": [],
     }
@@ -84,7 +83,6 @@ def get_config(conf_py_fpath):
         if len(git_diff_out):
             version += " (dirty)"
     doc["version"] = version
-    doc["pdf_documents"] = [tuple(d) for d in doc["pdf_documents"]]
     return doc
 
 
@@ -103,7 +101,6 @@ templates_path = ["_templates"]
 source_suffix = {".rst": "restructuredtext", ".md": "markdown"}
 master_doc = "index"
 doc = get_config(__file__)
-pdf_documents = doc.get("pdf_documents")
 
 title = doc.get("title")
 project = doc.get("project")
@@ -111,6 +108,12 @@ copyright = doc.get("copyright")
 author = doc.get("author")
 version = doc.get("version")
 release = version
+pdf_documents = [
+    (master_doc, project, title, author),
+]
+# pdf_use_index = False
+# pdf_use_coverpage = False
+# pdf_use_toc = False
 
 language = None
 exclude_patterns = []
@@ -132,6 +135,8 @@ latex_elements = {
     # Latex figure (float) alignment
     #
     # 'figure_align': 'htbp',
+    # "classoptions": ",openany,oneside",  # remove extra white page added to PDF's
+    # "extraclassoptions": ",openany,oneside",  # remove extra white page added to PDF's
 }
 latex_documents = [
     (master_doc, "documentation.tex", title, author, "manual"),

@@ -11,6 +11,7 @@ gblcmd_create_new_doc(){
     # we can always relink conf.py
     relative_DIR=$(realpath --relative-to="." "$DIR")
     ln -sf "$relative_DIR"/sphinx_conf.py ./conf.py
+    ln -sf "$relative_DIR"/tpls/d.tpl.bl.sh ./d.bl.sh
 
     cp "$DIR"/tpls/gitignore.tpl.conf ./.gitignore
     if [ ! -e ./doc.yaml ] ; then
@@ -25,4 +26,8 @@ gblcmd_create_new_doc(){
     else
         log "index.rst exists ... ignoring it"
     fi
+}
+
+gblcmd_install_dependencies(){
+    pip3 install rst2pdf yq
 }

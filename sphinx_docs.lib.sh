@@ -16,7 +16,6 @@ function docs_find(){
 
     for pfile in $(find $path -name "conf.py") ; do
         local abs_path=$(dirname $(readlink -f $pfile))
-
         if [ "$abs_path" == "$this_dir" ] ; then
             DOCS_REQS+=( $(dirname "$pfile") )
         fi
@@ -43,20 +42,19 @@ function docs_build_one(){
             echo "$pfile.png already up to date"
         fi
     done
-    pdf_check_bin="$this_dir/check_generate_pdf.py"
-    if $pdf_check_bin "$path" ; then
+
+    if [ "$(yq .generate_pdf $path/doc.yaml)" == "true" ] ; then
       $SPHINXBUILD -M "pdf" "$path" "${path}/.sphinx_docs_build" "${SPHINXOPTS}"
     fi
     $SPHINXBUILD -M "$target" "$path" "${path}/.sphinx_docs_build" "${SPHINXOPTS}"
 }
 
 function docs_build(){
-    local target=$SPHINX_DEFAULT_TARGET
     if [ "$1" != "" ] ; then
         target="$1"
     fi
     for path in "${DOCS_REQS[@]}" ; do
-        docs_build_one "$path" "$target" || return 1
+        docs_build_one "$path" || return 1
     done
 }
 
@@ -86,7 +84,8 @@ function docs_show_all_singlehtml(){
         browser_files="$browser_files ${path}/.sphinx_docs_build/$SPHINX_DEFAULT_TARGET/index.html"
     done
     if [ "$browser" != "" ] ; then
-        $browser "$browser_files" >/dev/null 2>&1 &
+        echo "$browser $browser_files"
+        $browser $browser_files >/dev/null 2>&1 &
     else
         for i in $browser_files ; do
             readlink -f "$i"
@@ -95,7 +94,23 @@ function docs_show_all_singlehtml(){
 }
 
 function docs_install_dependencies(){
-    sudo -H pip3 install --upgrade --quiet Sphinx recommonmark sphinx-rtd-theme rst2pdf
+    sudo -H pip3 install --upgrade --quiet Sphinx recommonmark sphinx-rtd-theme rst2pdf yq
     sudo apt install graphviz
 }
 
+
+function docs_clean_all(){
+    local path='.'
+    if [ "$1" != "" ] ; then
+        path=$1
+    fi
+    docs_find "$path" || return 1
+    for path in "${DOCS_REQS[@]}" ; do
+        local doc_build_path="${path}/.sphinx_docs_build"
+        echo "$doc_build_path"
+        if [ -d "$doc_build_path" ] ; then
+            rm -rf $doc_build_path
+        fi
+    done
+
+}
