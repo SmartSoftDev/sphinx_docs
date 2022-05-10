@@ -89,7 +89,7 @@ function docs_show_all_singlehtml(){
                 docs_build_one "$path" "$target"
             fi
             local proj_name=$(yq -r .project ${path}/doc.yaml)
-            pdf_files="$browser_files ${path}/.sphinx_docs_build/pdf/${proj_name}.pdf"
+            pdf_files="$browser_files ${path}/.sphinx_docs_build/pdf/*${proj_name}.pdf"
         done
         for i in $pdf_files ; do
             xdg-open "$i"

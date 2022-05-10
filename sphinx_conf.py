@@ -117,7 +117,7 @@ author = doc.get("author")
 version = doc.get("version")
 release = version
 pdf_documents = [
-    (master_doc, project, title, author),
+    (master_doc, f"{version}_{project}", title, author),
 ]
 # pdf_use_index = False
 # pdf_use_coverpage = False
