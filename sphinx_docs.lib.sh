@@ -76,21 +76,36 @@ function docs_show_all_singlehtml(){
     [ "x$2" != "x" ] && browser="$2"
 
     docs_find
-    local browser_files=""
-    for path in "${DOCS_REQS[@]}" ; do
-        if [ ! -d "${path}/.sphinx_docs_build" ] ; then
-            docs_build_one "$path" "$target"
-        fi
-        browser_files="$browser_files ${path}/.sphinx_docs_build/$SPHINX_DEFAULT_TARGET/index.html"
-    done
-    if [ "$browser" != "" ] ; then
-        echo "$browser $browser_files"
-        $browser $browser_files >/dev/null 2>&1 &
-    else
+    case $browser  in
+    "")
         for i in $browser_files ; do
             readlink -f "$i"
         done
-    fi
+    ;;
+    "pdf")
+        local pdf_files=""
+        for path in "${DOCS_REQS[@]}" ; do
+            if [ ! -d "${path}/.sphinx_docs_build" ] ; then
+                docs_build_one "$path" "$target"
+            fi
+            local proj_name=$(yq -r .project ${path}/doc.yaml)
+            pdf_files="$browser_files ${path}/.sphinx_docs_build/pdf/${proj_name}.pdf"
+        done
+        for i in $pdf_files ; do
+            xdg-open "$i"
+        done
+    ;;
+    *)
+        local browser_files=""
+        for path in "${DOCS_REQS[@]}" ; do
+            if [ ! -d "${path}/.sphinx_docs_build" ] ; then
+                docs_build_one "$path" "$target"
+            fi
+            browser_files="$browser_files ${path}/.sphinx_docs_build/$SPHINX_DEFAULT_TARGET/index.html"
+        done
+        $browser $browser_files >/dev/null 2>&1 &
+    ;;
+    esac
 }
 
 function docs_install_dependencies(){
