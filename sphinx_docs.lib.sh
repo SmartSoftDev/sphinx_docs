@@ -110,7 +110,7 @@ function docs_show_all_singlehtml(){
 
 function docs_install_dependencies(){
     # ERROR: sphinx-rtd-theme 1.0.0 has requirement docutils<0.18, but you'll have docutils 0.18.1 which is incompatible.
-    sudo -H pip3 install --upgrade --quiet docutils==0.17 Sphinx recommonmark sphinx-rtd-theme myst_parse
+    sudo -H pip3 install --upgrade --quiet docutils==0.17 Sphinx recommonmark sphinx-rtd-theme rst2pdf yq myst_parser
     sudo apt install graphviz
 }
 
