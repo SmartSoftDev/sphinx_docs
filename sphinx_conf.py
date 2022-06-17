@@ -123,7 +123,7 @@ pdf_documents = [
 # pdf_use_coverpage = False
 # pdf_use_toc = False
 
-language = None
+language = "En"
 exclude_patterns = []
 pygments_style = "sphinx"
 todo_include_todos = True
