@@ -103,13 +103,14 @@ function docs_show_all_singlehtml(){
             fi
             browser_files="$browser_files ${path}/.sphinx_docs_build/$SPHINX_DEFAULT_TARGET/index.html"
         done
-        $browser $browser_files >/dev/null 2>&1 &
+        $browser "$browser_files" >/dev/null 2>&1 &
     ;;
     esac
 }
 
 function docs_install_dependencies(){
-    sudo -H pip3 install --upgrade --quiet Sphinx recommonmark sphinx-rtd-theme rst2pdf yq
+    # ERROR: sphinx-rtd-theme 1.0.0 has requirement docutils<0.18, but you'll have docutils 0.18.1 which is incompatible.
+    sudo -H pip3 install --upgrade --quiet docutils==0.17 Sphinx recommonmark sphinx-rtd-theme myst_parse
     sudo apt install graphviz
 }
 
@@ -124,7 +125,7 @@ function docs_clean_all(){
         local doc_build_path="${path}/.sphinx_docs_build"
         echo "$doc_build_path"
         if [ -d "$doc_build_path" ] ; then
-            rm -rf $doc_build_path
+            rm -rf "$doc_build_path"
         fi
     done
 
