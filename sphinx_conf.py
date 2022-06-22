@@ -98,7 +98,7 @@ def get_config(conf_py_fpath):
     cwd = conf_py.absolute().parent
 
     if doc.get("generate_change_history"):
-        change_history_file = cwd / ".generate_change_history.md"
+        change_history_file = cwd / ".generate_change_history.tpl.md"
         with change_history_file.open("w", encoding="utf-8") as file_object:
             file_object.write("# Change history \n")
             file_object.write("|Commit Hash|Author|Date|Commit Subject| \n")
