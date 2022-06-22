@@ -16,4 +16,6 @@
 **/test-output.xml
 **/coverage.xml
 **/htmlcov
-.generate_change_history.md
+*/.generate_change_history.md
+*/generate_change_history.md
+tpls
