@@ -16,6 +16,8 @@ from typing import Union
 import yaml
 import subprocess
 
+from pathlib import Path
+
 
 def get_last_tag(cwd, _filter: str) -> Union[None, str]:
     """get last tag for some specific component"""
@@ -47,7 +49,7 @@ def get_config(conf_py_fpath):
         "copyright": "noCopyright",
         "generate_git_version": True,
         "generate_pdf": False,
-        "generate_change_history": False,  # TODO-SSD: to implement the history from yaml or from git.
+        "generate_change_history": True,  # TODO-SSD: to implement the history from yaml or from git.
         "git_tag_prefix": "",
         "tags": [],
     }
@@ -91,6 +93,21 @@ def get_config(conf_py_fpath):
         if len(git_diff_out):
             version += " (dirty)"
     doc["version"] = version
+
+    conf_py = Path(conf_py_fpath)
+    cwd = conf_py.absolute().parent
+
+    if doc.get("generate_change_history"):
+        change_history_file = cwd / ".generate_change_history.md"
+        with change_history_file.open("w", encoding="utf-8") as file_object:
+            file_object.write("# Change history \n")
+            file_object.write("|Commit Hash|Author|Date|Commit Subject| \n")
+            file_object.write("|-|-|-|-| \n")
+            change_history = subprocess.check_output(["git", "log", "--format=|%h | %an | %cD | %s |", "."], cwd=cwd).decode().split("\n")
+            for record in change_history:
+                if record:
+                    file_object.write(record + "\n")
+
     return doc
 
 

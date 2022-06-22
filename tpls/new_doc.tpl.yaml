@@ -4,7 +4,7 @@ author: noAuthor
 copyright: 2022, noCompanyName
 generate_git_version: true
 git_tag_prefix: ""
-generate_change_history: false
+generate_change_history: true
 generate_auto_index: false
 generate_pdf: false
 tags:
