@@ -47,6 +47,7 @@ def get_config(conf_py_fpath):
         "copyright": "noCopyright",
         "generate_git_version": True,
         "generate_pdf": False,
+        "pdf_fit_mode": "error", # valid values: error/shrink/truncate/overflow
         "generate_change_history": False,  # TODO-SSD: to implement the history from yaml or from git.
         "git_tag_prefix": "",
         "tags": [],
@@ -119,11 +120,12 @@ release = version
 pdf_documents = [
     (master_doc, f"{version}_{project}", title, author),
 ]
+pdf_fit_mode=doc.get("pdf_fit_mode")
 # pdf_use_index = False
 # pdf_use_coverpage = False
 # pdf_use_toc = False
 
-language = "En"
+language = "en"
 exclude_patterns = []
 pygments_style = "sphinx"
 todo_include_todos = True
