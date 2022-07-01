@@ -47,7 +47,6 @@ def get_config(conf_py_fpath):
         "copyright": "noCopyright",
         "generate_git_version": True,
         "generate_pdf": False,
-        "pdf_fit_mode": "error", # valid values: error/shrink/truncate/overflow
         "generate_change_history": False,  # TODO-SSD: to implement the history from yaml or from git.
         "git_tag_prefix": "",
         "tags": [],
@@ -120,7 +119,9 @@ release = version
 pdf_documents = [
     (master_doc, f"{version}_{project}", title, author),
 ]
-pdf_fit_mode=doc.get("pdf_fit_mode")
+
+# valid values: error/shrink/truncate/overflow see https://rst2pdf.org/static/manual.html
+pdf_fit_mode = "shrink"
 # pdf_use_index = False
 # pdf_use_coverpage = False
 # pdf_use_toc = False
@@ -153,3 +154,8 @@ man_pages = [(master_doc, "documentation", title, [author], 1)]
 texinfo_documents = [
     (master_doc, title, title, author, title, title, "Miscellaneous"),
 ]
+
+# SSD-FIXME: implement a global vars LOAD for conf.py from different sources or more secure.
+# for example: import DOCUMENT_DIR/extra_conf.py
+
+globals().update(doc.get("GLOBALS", {}))
