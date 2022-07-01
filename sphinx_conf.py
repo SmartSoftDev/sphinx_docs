@@ -119,11 +119,14 @@ release = version
 pdf_documents = [
     (master_doc, f"{version}_{project}", title, author),
 ]
+
+# valid values: error/shrink/truncate/overflow see https://rst2pdf.org/static/manual.html
+pdf_fit_mode = "shrink"
 # pdf_use_index = False
 # pdf_use_coverpage = False
 # pdf_use_toc = False
 
-language = "En"
+language = "en"
 exclude_patterns = []
 pygments_style = "sphinx"
 todo_include_todos = True
@@ -151,3 +154,8 @@ man_pages = [(master_doc, "documentation", title, [author], 1)]
 texinfo_documents = [
     (master_doc, title, title, author, title, title, "Miscellaneous"),
 ]
+
+# SSD-FIXME: implement a global vars LOAD for conf.py from different sources or more secure.
+# for example: import DOCUMENT_DIR/extra_conf.py
+
+globals().update(doc.get("GLOBALS", {}))
