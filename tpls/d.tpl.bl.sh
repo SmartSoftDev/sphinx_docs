@@ -16,11 +16,11 @@ _find_sphinx_docs_sh_lib_location(){
             fi
         done
     fi
+    [ -z "$SPHINX_DOCS_SH_LIB_LOCATION" ] && fatal "Could not find the Sphinx_docs tool"
 }
 gblcmd_descr_show_docs=("Shows the singlehtmls in browser (default chromium)", ["Browser CMD or 'pdf'"])
 gblcmd_show(){
     _find_sphinx_docs_sh_lib_location
-    [ -z "$SPHINX_DOCS_SH_LIB_LOCATION" ] && fatal "Could not find the Sphinx_docs tool"
     . $SPHINX_DOCS_SH_LIB_LOCATION
     docs_show_all_singlehtml . $1
 }
@@ -28,7 +28,6 @@ gblcmd_show(){
 gblcmd_descr_doc="Builds Documentation using Sphinx_docs tool"
 gblcmd_build(){
     _find_sphinx_docs_sh_lib_location
-    [ -z "$SPHINX_DOCS_SH_LIB_LOCATION" ] && fatal "Could not find the Sphinx_docs tool"
     . $SPHINX_DOCS_SH_LIB_LOCATION
     docs_build_all
 }
@@ -36,15 +35,13 @@ gblcmd_build(){
 gblcmd_descr_doc="Builds Documentation using Sphinx_docs tool"
 gblcmd_clean(){
     _find_sphinx_docs_sh_lib_location
-    [ -z "$SPHINX_DOCS_SH_LIB_LOCATION" ] && fatal "Could not find the Sphinx_docs tool"
     . $SPHINX_DOCS_SH_LIB_LOCATION
     docs_clean_all
 }
 
-gblcmd_descr_install_depends="Install ubuntu and pip dependencies for sphinx docs"
-gblcmd_install_depends(){
+gblcmd_descr_install_dependencies="Install ubuntu and pip dependencies for sphinx docs"
+gblcmd_install_dependencies(){
     _find_sphinx_docs_sh_lib_location
-    [ -z "$SPHINX_DOCS_SH_LIB_LOCATION" ] && fatal "Could not find the Sphinx_docs tool"
     . $SPHINX_DOCS_SH_LIB_LOCATION
     docs_install_dependencies
 }
